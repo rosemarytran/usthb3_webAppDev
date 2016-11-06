@@ -4,7 +4,7 @@
             <div class="col-lg-12">
                 <p><?php echo anchor("ictlab_info/index",'<< Back to ICTLab Infomation'); ?></P>
                 <br>
-                <p>Total <?=$num_news?> news.</p>
+                <p>Total <?=$num_events?> events.</p>
                 <table class="table table-hover">
                     <thead>
                         <th>#</th>
@@ -13,12 +13,12 @@
                         <th></th>
                     </thead>
                     <tbody>
-                        <?php if(isset($news)) : foreach($news as $new) :?>
+                        <?php if(isset($events)) : foreach($events as $event) :?>
                         <tr>
-                            <td><?=$new->id?></td>
-                            <td><?=$new->title?></td>
-                            <td><?php echo substr($new->content, 0, 120).'...' ?></td>  
-                            <td><?php echo anchor("news/view/$new->id",'View') ?></td>
+                            <td><?=$event->id?></td>
+                            <td><?=$event->title?></td>
+                            <td><?php echo substr($event->content, 0, 120).'...' ?></td>  
+                            <td><?php echo anchor("usth_event/view/$event->id",'View') ?></td>
                         </tr>
                         <?php endforeach; ?> 
                     </tbody>
@@ -34,4 +34,3 @@
         </div>     
     </div>
  </div>   
-
