@@ -14,7 +14,7 @@
             <hr>
             <h3><?php echo anchor("news/index",'View News >>') ?></p>
             <h3><?php echo anchor("usth_event/index",'View Events >>') ?></p>
-            <h3><?php echo anchor("http://localhost/ICTLabWeb/allnews.php",'View on ICTLab Website >>') ?></p>
+            <h3><?php echo anchor_popup("http://localhost/ICTLabWeb/allnews.php",'View on ICTLab Website >>') ?></p>
             <h2>Private Information.</h2>
             <hr>
             <h3><?php echo anchor("internal_calendar/index",'View Calendar >>') ?></h3>

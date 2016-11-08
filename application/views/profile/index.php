@@ -5,7 +5,10 @@
             <div class="col-lg-12">
                 <?php if($level == 2): ?>
                     <?php if($me <> NULL): ?>
-                        <h3><?php echo anchor("profile/update/$me->id",'Update My Profile') ?></h3>
+                        <h4>
+                            <?php echo anchor("profile/view/$me->id",'View My Profile') ?> | 
+                            <?php echo anchor("profile/update/$me->id",'Update My Profile') ?>
+                        </h4>
                     <?php else : ?>
                         <h3><?php echo anchor("profile/create",'Create My Profile') ?></h3>
                     <?php endif; ?>

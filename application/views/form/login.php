@@ -10,6 +10,9 @@
             <?php echo form_open('form/login', array('class' => 'form-signin'))?>
                 <h2 class="form-signin-heading">Please log in</h2> 
                 
+                <?php echo $this->session->flashdata('mail_msg'); ?>
+                <?php echo $this->session->flashdata('admin_msg'); ?>
+                <?php echo $this->session->flashdata('staff_msg'); ?>
                 <?php echo form_error('email'); ?>
                 <label for="inputEmail" class="sr-only">Email address</label>
                 <input type="email" name="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus value="<?php echo set_value('email'); ?>" />
@@ -30,7 +33,7 @@
                 <button class="btn btn-lg btn-primary btn-block" type="submit">Log in</button>
                 <br>
                 <p><?php echo 'Don\'t have an account?  '.anchor("signup",'Sign Up')?></p>
-                <p><?php echo 'Forget your password?  '.anchor("form/#",'Send me a new one')?></p>
+                <p><?php echo 'Forget your password?  '.anchor("form/resend_password",'Send me a new one')?></p>
             </form>
         </div>
     </body>

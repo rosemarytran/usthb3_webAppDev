@@ -11,7 +11,7 @@ class Form extends CI_Controller {
             return $password;
         }
         
-        function send_mail($email,$password){
+        function send_mail($email,$password,$subject,$body){
             require 'PHPMailerAutoload.php';
             $mail = new PHPMailer;           
             $mail->isSMTP();                                      // Set mailer to use SMTP
@@ -32,73 +32,72 @@ class Form extends CI_Controller {
             $mail->addAddress($email);     // Add a recipient
             $mail->isHTML(true);                                  // Set email format to HTML
 
-            $mail->Subject = 'Welcome to USTH Dashboard as a staff.';
-            $mail->Body    = 'Your password is: '.$password;
+            $mail->Subject = $subject;
+            $mail->Body    = $body.$password;
             if(!$mail->send()) {
-                echo 'Message could not be sent.';
-                echo 'Mailer Error: ' . $mail->ErrorInfo;
+                echo 'Error sending mail! '.$mail->ErrorInfo;;
             } else {
+                $this->users_model->addUser($email,$password);  
+                $this->session->set_flashdata('mail_msg','<div class="alert alert-success text-center">An email with password has been sent to your account! Please check your inbox!</div>');
                 $this->load->view('form/login');
+                $this->session->sess_destroy();
             }
         }
 
 
         public function signup() {
-            $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email');
-            $this->form_validation->set_rules('password', 'Password', 'trim|required|min_length[5]');
-            $this->form_validation->set_rules('passconf', 'Password Confirmation', 'trim|required|matches[password]');
+            $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email|is_unique[users.email]', array('is_unique[users.email]' => 'This email already existed'));
+            $this->form_validation->set_message('is_unique[users.email]', 'This email already existed');
+//            $this->form_validation->set_rules('password', 'Password', 'trim|required|min_length[5]');
+//            $this->form_validation->set_rules('passconf', 'Password Confirmation', 'trim|required|matches[password]');
             if ($this->form_validation->run() == FALSE){
                 $this->load->view('form/signup');
             }else{
-                $email = $this->input->post('email');
-                $password = $this->input->post('password');
-//                $password = $this->random_password(6);
-                $level = 2;   
-                $this->send_mail($email, $password);
-                $this->users_model->insertUser($email,$password,$level);                                   
+                $email = $this->input->post('email');  
+//                $password = $this->input->post('password');
+                $password = $this->random_password(6);   
+                $this->send_mail($email, $password,'Welcome to USTH Dashboard as a staff.','Your password is: ');                                   
             }
         }
         
-//        public function mailToMe() {
-//            require 'PHPMailerAutoload.php';
-//            $mail = new PHPMailer;
-//            //$mail->SMTPDebug = 3;                               // Enable verbose debug output
-//            $mail->isSMTP();                                      // Set mailer to use SMTP
-//            $mail->Host = 'tls://smtp.gmail.com:587';  // Specify main and backup SMTP servers
-//            $mail->SMTPAuth = true;                               // Enable SMTP authentication
-//            $mail->Username = 'ththao111@gmail.com';                 // SMTP username
-//            $mail->Password = '0984417418';                           // SMTP password
-//            $mail->SMTPSecure = 'tls';                            // Enable TLS encryption, `ssl` also accepted
-//            $mail->Port = 587;                                    // TCP port to connect to
-//            $mail->SMTPOptions = array(
-//                'ssl' => array(
-//                    'verify_peer' => false,
-//                    'verify_peer_name' => false,
-//                    'allow_self_signed' => true
-//            )
-//);
-//            $mail->setFrom('ththao111@gmail.com', 'Mailer');
-//            $mail->addAddress('ththao111@gmail.com', 'Joe User');     // Add a recipient
-//            //$mail->addAddress('ellen@example.com');               // Name is optional
-//            //$mail->addReplyTo('info@example.com', 'Information');
-//            //$mail->addCC('cc@example.com');
-//            //$mail->addBCC('bcc@example.com');
-//
-//            //$mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
-//            //$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
-//            $mail->isHTML(true);                                  // Set email format to HTML
-//
-//            $mail->Subject = 'newer one';
-//            $mail->Body    = 'This is the HTML message body <b>in bold!</b>';
-//            $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
-//
-//            if(!$mail->send()) {
-//                echo 'Message could not be sent.';
-//                echo 'Mailer Error: ' . $mail->ErrorInfo;
-//            } else {
-//                echo 'Message has been sent';
-//            }
-//        }
+// Resend Password
+    public function resend_password() {
+        $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email');
+        if($this->form_validation->run()==FALSE){
+            $this->load->view('form/resend_password');
+        }
+        else{
+            $email = $this->input->post('email');
+            $staff = $this->users_model->getUser($email); 
+            if($staff <> 0){
+                $password = $this->random_password(6);   
+                $this->send_mail($email, $password, 'Resend Password','Your new password is: ');    
+            }else{
+                $this->session->set_flashdata('error_msg','<div class="alert alert-danger text-center">This email is not signed up yet!</div>');
+                $this->load->view('form/resend_password');
+            }
+        }
+        
+    }
+// Reset Password
+    public function reset_password() {
+        $data['email'] = $this->session->userdata('email');
+        $this->form_validation->set_rules('password', 'Current Password', 'trim|required|min_length[5]');
+        $this->form_validation->set_rules('passnew', 'New Password', 'trim|required|min_length[5]');
+         if ($this->form_validation->run() == FALSE){
+                $this->load->view('form/reset_password',$data);
+        }else{
+            $password = $this->input->post('password');
+            $staff = $this->users_model->getUser($data['email']);
+            if (password_verify($password, $staff['password'])) {
+                $passnew = $this->input->post('passnew');
+                $this->send_mail($data['email'], $passnew,'Reset Password.','Your reset password is: ');  
+            } else {
+                $this->session->set_flashdata('error_msg','<div class="alert alert-danger text-center">Invalid Current Password</div>');
+                $this->load->view('form/reset_password',$data);
+            }                                 
+        }
+    }
 // Login
         public function checkAdmin($email,$password,$level) {
             $admin = $this->users_model->getAdmin($email,$password);
@@ -109,6 +108,7 @@ class Form extends CI_Controller {
                 redirect('dashboard');
             }
             else{
+                $this->session->set_flashdata('admin_msg','<div class="alert alert-danger text-center">Invalid Email or Password</div>');
                 $this->load->view('form/login');
             }
         }
@@ -122,10 +122,12 @@ class Form extends CI_Controller {
                     $this->session->set_userdata('level',$level);
                     redirect('dashboard');
                 } else {
+                    $this->session->set_flashdata('staff_msg','<div class="alert alert-danger text-center">Invalid Password</div>');
                     $this->load->view('form/login');
                 }
             }
             else{
+                $this->session->set_flashdata('staff_msg','<div class="alert alert-danger text-center">Invalid Email or Password</div>');
                 $this->load->view('form/login');
             }            
         }
@@ -141,8 +143,7 @@ class Form extends CI_Controller {
             $this->form_validation->set_rules('password', 'Password', 'trim|required|min_length[5]');           
             if($this->form_validation->run()==FALSE){
                 $this->load->view('form/login');
-            }
-            else{
+            }else{
                 $email = $this->input->post('email');
                 $password = $this->input->post('password');
                 $level = $this->input->post('level');

@@ -26,18 +26,27 @@ class Users_model extends CI_model{
         $this->db->select('*');
         $this->db->from('users');
         $this->db->where('email',$email);
-        //$this->db->where('password',$password);
+        $this->db->where('level',2);
         $query = $this->db->get();
         return $query->row_array();
     }
     
-    public function insertUser($email,$password,$level) {
-        $data = array(
-            'email' => $email,
-            'password' => password_hash($password, PASSWORD_DEFAULT),
-            'level' => $level
-        );
-        $this->db->insert('users', $data);
+    public function addUser($email,$password) {
+        $query = $this->db->get_where('users', array('email' => $email));
+        if($query->num_rows() <> 0){
+            $this->db->where('email',$email);
+            $this->db->update('users',array(
+                'email' => $email,
+                'password' => password_hash($password, PASSWORD_DEFAULT),
+                'level' => 2
+            ));
+        }else{
+            $this->db->insert('users',array(
+                'email' => $email,
+                'password' => password_hash($password, PASSWORD_DEFAULT),
+                'level' => 2
+            ));
+        }
     }
    
 }

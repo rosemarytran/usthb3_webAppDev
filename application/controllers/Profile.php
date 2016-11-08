@@ -6,7 +6,7 @@ class Profile extends CI_Controller{
     }
     
     public function index($sort_by = 'title', $sort_order = 'asc', $offset = 0) {
-        $limit = 10;
+        $limit = 5;
         $data['email'] = $this->session->userdata('email');
         $data['level'] = $this->session->userdata('level');
         $data['header_title'] = 'All Staffs Profile';
